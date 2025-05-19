@@ -1,3 +1,9 @@
+📌 Status do Projeto:
+•	Login automatizado ✅
+•	Navegação até CDA automatizada ✅
+•	Busca e download de CDA funcionando ✅
+•	Preparado para próxima etapa: loop de múltiplas CDAs 🔄
+
 📋 Resumo do Dia (28/04/2025)
 
 •	Finalizamos a instalação do Python e do Selenium.
@@ -5,11 +11,11 @@
 •	Criamos e executamos com sucesso o primeiro script Selenium (abrir e fechar o navegador).
 •	Entendemos a diferença entre Classe e Objeto em Python.
 •	Analisamos e planejamos toda a navegação no site da dívida ativa:
-o	Clique no botão "PROJUDI".
-o	Clique no menu "Impressão de CDA".
-o	Preenchimento do número da CDA.
-o	Clique no botão "Pesquisar".
-o	Clique no botão "Imprimir" (Download).
+    o	Clique no botão "PROJUDI".
+    o	Clique no menu "Impressão de CDA".
+    o	Preenchimento do número da CDA.
+    o	Clique no botão "Pesquisar".
+    o	Clique no botão "Imprimir" (Download).
 •	Finalizamos a Fase 1: Planejamento da automação.
 
 •	📋 Resumo do Dia (30/04/2025)
@@ -23,14 +29,25 @@ Acesso ao botão "PROJUDI" e ao menu lateral "Impressão de CDA", com tratamento
 Inserção do número da CDA, clique em "Pesquisar" e clique no botão "Imprimir".
 5.	Resolução de erro real:
 Corrigido erro de XPath no botão "PROJUDI" e identificado que o encerramento manual do navegador provoca erro de sessão (InvalidSessionIdException).
-🧠 Aprendizados reforçados:
-•	Diferença entre classes e objetos em Python (Service vs service).
-•	Uso adequado de WebDriverWait e ExpectedConditions.
-•	Como localizar elementos de forma resiliente com XPath e By.LINK_TEXT.
-•	Primeiros passos para capturar falhas com try/except.
-📌 Status do Projeto:
-•	Login automatizado ✅
-•	Navegação até CDA automatizada ✅
-•	Busca e download de CDA funcionando ✅
-•	Preparado para próxima etapa: loop de múltiplas CDAs 🔄
+
+•	📋 Resumo do Dia (19/05/2025)
+Definimos a visão do projeto como "CDA Manager":
+Uma aplicação completa que irá baixar, alterar, excluir e suspender CDAs.
+
+Priorizamos o primeiro objetivo:
+Automatizar o download em massa de CDAs, visando escalabilidade e velocidade.
+
+Escolhemos o formato de entrada dos dados:
+Leitura de CDA a partir de um arquivo .txt, com suporte para milhares de linhas.
+
+Criamos o loop de processamento:
+Lê cada CDA do arquivo, digita no sistema, clica em "Pesquisar" e "Imprimir", e passa para o próximo.
+
+Adicionamos logs automáticos:
+Cada CDA processado com sucesso ou erro é registrado em um arquivo log.txt com data e hora.
+
+Organizamos o código por seções comentadas:
+Facilitando manutenção, testes e futuras melhorias.
+
+
 
