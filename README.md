@@ -49,5 +49,22 @@ Cada CDA processado com sucesso ou erro é registrado em um arquivo log.txt com 
 Organizamos o código por seções comentadas:
 Facilitando manutenção, testes e futuras melhorias.
 
+Relatório Diário – 20/05/2025
+✅ Atividades concluídas:
+Ajustamos o script para ler a lista de CDAs a partir de um arquivo .csv
+Substituímos o .txt por um .csv mais flexível, permitindo expansão futura.
+Criamos um sistema de log em arquivo output_log.csv
+Para cada CDA processado, registramos:
+    Número da CDA
+    Status (Success/Failed)
+    Data e hora
+    Mensagem de erro (caso falhe)
+Adicionamos tratamento de erros com try/except
+Evitamos que falhas interrompam o processamento de outras CDAs.
+Implementamos lógica de tentativa com retry
+Caso uma CDA falhe, o script tenta novamente até 2 vezes antes de registrar como “Failed”.
+Corrigimos comportamento do Excel (notação científica)
+Aplicamos formatação automática para manter os números longos como texto no arquivo .csv.
+Mantivemos a estrutura organizada com boas práticas de importação e encerramento correto do log
 
 

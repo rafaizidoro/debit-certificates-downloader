@@ -1,0 +1,37 @@
+2025-05-20 10:57:00,511 - INFO - Processing CDA: 20250200135587
+2025-05-20 10:57:02,209 - INFO - Processing CDA: 20250200135702
+2025-05-20 10:57:03,793 - INFO - Processing CDA: 20250200134949
+2025-05-20 10:57:05,033 - ERROR - Error processing CDA 20250200134949: Message: element click intercepted: Element <button class="btn btn-success" target="_blank" type="button">...</button> is not clickable at point (379, 632). Other element would receive the click: <div class="panel-body">...</div>
+  (Session info: chrome=136.0.7103.114)
+Stacktrace:
+	GetHandleVerifier [0x00007FF621DCEFA5+77893]
+	GetHandleVerifier [0x00007FF621DCF000+77984]
+	(No symbol) [0x00007FF621B991BA]
+	(No symbol) [0x00007FF621BF70A9]
+	(No symbol) [0x00007FF621BF4A62]
+	(No symbol) [0x00007FF621BF1B01]
+	(No symbol) [0x00007FF621BF0A01]
+	(No symbol) [0x00007FF621BE2134]
+	(No symbol) [0x00007FF621C1712A]
+	(No symbol) [0x00007FF621BE19E6]
+	(No symbol) [0x00007FF621C17340]
+	(No symbol) [0x00007FF621C3F07F]
+	(No symbol) [0x00007FF621C16F03]
+	(No symbol) [0x00007FF621BE0328]
+	(No symbol) [0x00007FF621BE1093]
+	GetHandleVerifier [0x00007FF622087B6D+2931725]
+	GetHandleVerifier [0x00007FF622082132+2908626]
+	GetHandleVerifier [0x00007FF6220A00F3+3031443]
+	GetHandleVerifier [0x00007FF621DE91EA+184970]
+	GetHandleVerifier [0x00007FF621DF086F+215311]
+	GetHandleVerifier [0x00007FF621DD6EC4+110436]
+	GetHandleVerifier [0x00007FF621DD7072+110866]
+	GetHandleVerifier [0x00007FF621DBD479+5401]
+	BaseThreadInitThunk [0x00007FFBD61BE8D7+23]
+	RtlUserThreadStart [0x00007FFBD7BBC5DC+44]
+
+2025-05-20 10:57:07,233 - INFO - Finished processing all CDAs.
+2025-05-20 11:27:58,368 - INFO - Processing CDA: 20250200135587
+2025-05-20 11:28:00,291 - INFO - Processing CDA: 20250200135702
+2025-05-20 11:28:01,703 - INFO - Processing CDA: 20250200134949
+2025-05-20 11:28:05,411 - INFO - Finished processing all CDAs.
