@@ -67,4 +67,17 @@ Corrigimos comportamento do Excel (notação científica)
 Aplicamos formatação automática para manter os números longos como texto no arquivo .csv.
 Mantivemos a estrutura organizada com boas práticas de importação e encerramento correto do log
 
+Relatório Diário – 21/05/2025
 
+✅ Atividades realizadas:
+Implementação de mensagens de status no terminal
+
+Agora o script exibe:
+🔄 Iniciando serviços, 🔐 Efetuando login no Sitafe, 📥 Iniciando downloads, ✅ Downloads concluídos.
+
+Validação e criação automática da pasta de downloads
+O script verifica se a pasta CDAs existe e, se não existir, cria automaticamente, informando o usuário via terminal.
+Transformação do bloco de verificação da pasta de downloads em uma função modular
+A função setup_download_directory() melhora a legibilidade e reaproveitamento do código.
+Correção na ordem de execução do caminho de download
+Ajustado para garantir que a pasta exista antes de configurar as preferências do Chrome.

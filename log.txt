@@ -35,3 +35,88 @@ Stacktrace:
 2025-05-20 11:28:00,291 - INFO - Processing CDA: 20250200135702
 2025-05-20 11:28:01,703 - INFO - Processing CDA: 20250200134949
 2025-05-20 11:28:05,411 - INFO - Finished processing all CDAs.
+2025-05-21 11:27:43,733 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 11:27:45,654 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 11:27:46,149 - WARNING - Attempt 1 failed for CDA 20250200134435: I/O operation on closed file.
+2025-05-21 11:27:46,149 - INFO - Processing CDA: 20250200134435 (Attempt 2)
+2025-05-21 11:27:46,781 - WARNING - Attempt 2 failed for CDA 20250200134435: I/O operation on closed file.
+2025-05-21 11:27:46,782 - INFO - Processing CDA: 20250200134435 (Attempt 3)
+2025-05-21 11:27:47,389 - WARNING - Attempt 3 failed for CDA 20250200134435: I/O operation on closed file.
+2025-05-21 11:37:47,047 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 11:37:47,948 - WARNING - Attempt 1 failed for CDA 20250200134434: I/O operation on closed file.
+2025-05-21 11:37:47,948 - INFO - Processing CDA: 20250200134434 (Attempt 2)
+2025-05-21 11:37:48,534 - WARNING - Attempt 2 failed for CDA 20250200134434: I/O operation on closed file.
+2025-05-21 11:37:48,534 - INFO - Processing CDA: 20250200134434 (Attempt 3)
+2025-05-21 11:37:49,026 - WARNING - Attempt 3 failed for CDA 20250200134434: I/O operation on closed file.
+2025-05-21 11:41:03,389 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 11:41:05,288 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 11:41:06,730 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-21 11:41:08,193 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-21 11:41:09,619 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 11:41:13,437 - INFO - Finished processing all CDAs.
+2025-05-21 11:42:41,466 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 11:42:43,433 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 11:42:45,033 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-21 11:42:46,646 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-21 11:42:48,150 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 11:42:51,993 - INFO - Finished processing all CDAs.
+2025-05-21 11:54:17,988 - INFO - CDA 20250200134434 already processed successfully. Skipping.
+2025-05-21 11:54:17,989 - INFO - CDA 20250200134435 already processed successfully. Skipping.
+2025-05-21 11:54:17,989 - INFO - CDA 20250200134436 already processed successfully. Skipping.
+2025-05-21 11:54:17,989 - INFO - CDA 20250200134437 already processed successfully. Skipping.
+2025-05-21 11:54:17,989 - INFO - CDA 20250200134438 already processed successfully. Skipping.
+2025-05-21 11:54:17,991 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 11:54:19,984 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 11:54:21,334 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-21 11:54:22,710 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-21 11:54:24,121 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 11:54:29,431 - INFO - Finished processing all CDAs.
+2025-05-21 11:58:43,703 - INFO - 0 CDAs to process after skipping 5 already completed.
+2025-05-21 11:58:45,921 - INFO - Finished processing all CDAs.
+2025-05-21 11:59:18,116 - INFO - 1 CDAs to process after skipping 4 already completed.
+2025-05-21 11:59:33,508 - INFO - 1 CDAs to process after skipping 4 already completed.
+2025-05-21 11:59:33,509 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 11:59:37,562 - INFO - Finished processing all CDAs.
+2025-05-21 12:09:21,790 - INFO - 5 CDAs to process after skipping 0 already completed.
+2025-05-21 12:09:21,791 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 12:09:23,693 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 12:09:25,189 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-21 12:09:26,700 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-21 12:09:28,148 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 12:09:31,879 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_12-09-31
+2025-05-21 12:09:31,881 - INFO - Finished processing all CDAs.
+2025-05-21 12:11:57,331 - INFO - 0 CDAs to process after skipping 5 already completed.
+2025-05-21 12:11:59,556 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_12-11-59
+2025-05-21 12:11:59,556 - INFO - Finished processing all CDAs.
+2025-05-21 12:15:05,729 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_12-15-05
+2025-05-21 12:15:05,729 - INFO - Finished processing all CDAs.
+2025-05-21 12:38:53,115 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 12:38:55,042 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 12:38:56,439 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-21 12:38:57,798 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-21 12:38:59,190 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 12:39:02,768 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_12-39-02
+2025-05-21 12:39:02,770 - INFO - Finished processing all CDAs.
+2025-05-21 12:39:40,989 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_12-39-40
+2025-05-21 12:39:40,989 - INFO - Finished processing all CDAs.
+2025-05-21 13:37:50,451 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 13:37:52,350 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 13:37:53,912 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-21 13:37:55,262 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-21 13:37:56,614 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 13:38:00,320 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_13-38-00
+2025-05-21 13:38:00,320 - INFO - Finished processing all CDAs.
+2025-05-21 13:47:55,706 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 13:47:57,656 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 13:47:59,268 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-21 13:48:00,759 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-21 13:48:02,193 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 13:48:05,905 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_13-48-05
+2025-05-21 13:48:05,905 - INFO - Finished processing all CDAs.
+2025-05-21 14:24:53,902 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 14:24:55,836 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 14:24:57,321 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-21 14:24:58,659 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-21 14:25:00,024 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 14:25:03,594 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_14-25-03
+2025-05-21 14:25:03,595 - INFO - Finished processing all CDAs.
