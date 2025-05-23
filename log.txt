@@ -120,3 +120,24 @@ Stacktrace:
 2025-05-21 14:25:00,024 - INFO - Processing CDA: 20250200134438 (Attempt 1)
 2025-05-21 14:25:03,594 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_14-25-03
 2025-05-21 14:25:03,595 - INFO - Finished processing all CDAs.
+2025-05-21 14:38:52,380 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-21 14:38:54,321 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-21 14:38:55,711 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-21 14:38:57,051 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-21 14:38:58,567 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-21 14:39:02,264 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-21_14-39-02
+2025-05-21 14:39:02,265 - INFO - Finished processing all CDAs.
+2025-05-22 20:57:10,395 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-22 20:57:12,278 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-22 20:57:13,668 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-22 20:57:15,016 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-22 20:57:16,367 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-22 20:57:19,871 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-22_20-57-19
+2025-05-22 20:57:19,871 - INFO - Finished processing all CDAs.
+2025-05-22 21:05:29,798 - INFO - Processing CDA: 20250200134434 (Attempt 1)
+2025-05-22 21:05:31,682 - INFO - Processing CDA: 20250200134435 (Attempt 1)
+2025-05-22 21:05:33,055 - INFO - Processing CDA: 20250200134436 (Attempt 1)
+2025-05-22 21:05:34,477 - INFO - Processing CDA: 20250200134437 (Attempt 1)
+2025-05-22 21:05:35,826 - INFO - Processing CDA: 20250200134438 (Attempt 1)
+2025-05-22 21:05:39,377 - INFO - \u2705 All downloaded CDAs moved to: C:\Users\rafae\Downloads\CDAs\CDAs_2025-05-22_21-05-39
+2025-05-22 21:05:39,378 - INFO - Finished processing all CDAs.

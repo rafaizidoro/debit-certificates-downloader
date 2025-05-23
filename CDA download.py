@@ -1,186 +1,161 @@
-# 📜 CDA Download Automation Script
-# 📜 This script automates the download of CDA (Certidão de Dívida Ativa) documents from a website.
+# cda_download_modular.py
 
-print("Starting Script...")
-
-# --- IMPORTS ---
-import time
 import os
-import logging
+import time
 import csv
 import shutil
+import logging
 from datetime import datetime
-
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
 
+def setup_logging():
+    logging.basicConfig(
+        filename="log.txt",
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
 
-# --- SETUP LOGGING ---
-logging.basicConfig(
-    filename="log.txt",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-# --- SETUP CHROME DRIVER PATH ---
-chrome_driver_path = r"C:\Users\rafae\OneDrive\Documentos\Projetos TI\debit-certificates-downloader\chromedriver.exe"
-service = Service(chrome_driver_path)
-
-# --- SETUP DOWNLOAD FOLDER ---
-# 📂 Change this to your desired download folder
-# Define download folder
-download_dir = r"C:\Users\rafae\Downloads\CDAs"
-# Notify the user about the download folder status
-if os.path.exists(download_dir):
-    print(f"📁 Download folder found: {download_dir}")
-else:
-    print(f"📁 Download folder not found. It will be created: {download_dir}")
-    os.makedirs(download_dir, exist_ok=True)
-
-print("🔄 Starting services...")
-# Chrome options, driver setup, WebDriverWait, etc.
-
-# --- SET CHROME PREFERENCES ---
-chrome_options = Options()
-chrome_options.add_argument("--log-level=3")  # Suppress most logs
-chrome_options.add_argument("--headless=new") # Run in headless mode (no GUI)
-chrome_options.add_experimental_option("prefs", {
-    "download.default_directory": download_dir,        # 📂 Your folder here
-    "download.prompt_for_download": False,             # 🚫 No popup
-    "download.directory_upgrade": True,                # ⬆ If folder exists, use it
-    "plugins.always_open_pdf_externally": True         # 📄 Avoid opening PDFs in browser
-})
-
-# Start Chrome with options
-driver = webdriver.Chrome(service=service, options=chrome_options)
-
-# --- DEFINE WEBDRIVER WAIT OBJECT (REUSABLE) ---
-wait = WebDriverWait(driver, 10)
-
-# Load CDAs from cdas.csv
-with open("cdas.csv", encoding='utf-8-sig', newline='') as file:
-    reader = csv.DictReader(file)
-    cda_list = [row['cda'].strip() for row in reader if row['cda'].strip()]
-
-# --- OPEN WEBSITE ---
-driver.get("https://sitafeweb.sefin.ro.gov.br/projudi")
-
-print("🔐 Logging into Sitafe...")
-
-# --- LOG IN ---
-username_input = wait.until(EC.visibility_of_element_located((By.NAME, "username")))
-username_input.send_keys("02092091271")
-
-password_input = wait.until(EC.visibility_of_element_located((By.NAME, "password")))
-password_input.send_keys("Sitafe321")
-
-login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Entrar')]")))
-login_button.click()
-
-# --- WAIT FOR MAIN DASHBOARD TO LOAD ---
-wait.until(EC.presence_of_element_located((By.XPATH, "//h6[contains(text(), 'PROJUDI')]")))
-
-# --- CLICK ON PROJUDI ---
-projudi_button = wait.until(EC.element_to_be_clickable((
-    By.XPATH, "//div[contains(@class, 'text-orange')]//h6[contains(text(), 'PROJUDI')]"
-)))
-projudi_button.click()
-
-# --- CLICK ON "IMPRESSÃO DE CDA" ---
-impressao_cda_link = wait.until(
-    EC.presence_of_element_located((By.XPATH, "//a[contains(., 'CDA')]"))
-)
-driver.execute_script("arguments[0].click();", impressao_cda_link)
-
-# --- CDA DOWNLOAD SECTION ---
-max_retries = 2
-
-# --- CHECK IF OUTPUT LOG EXISTS ---
-processed_successfully = set()
-try:
-    with open("output_log.csv", mode="r", newline='', encoding="utf-8") as existing_log:
-        reader = csv.DictReader(existing_log)
-        for row in reader:
-            if row["Status"] == "Success":
-                cleaned_cda = row["CDA"].replace("'", "").strip()
-                processed_successfully.add(cleaned_cda)
-except FileNotFoundError:
-    pass
-
-# --- BUILD LIST OF CDAs TO PROCESS ---
-cda_list_to_process = []
-
-for cda in cda_list:
-    if cda in processed_successfully:
-        print(f"[SKIPPED] CDA {cda} already marked as Success in log.")
+def setup_download_directory(path: str) -> str:
+    if os.path.exists(path):
+        print(f"📁 Download folder found: {path}")
     else:
-        cda_list_to_process.append(cda)
+        print(f"📁 Download folder not found. It will be created: {path}")
+        os.makedirs(path, exist_ok=True)
+    return os.path.abspath(path)
 
-total_cdAs = len(cda_list_to_process)
-print(f"📥 Starting downloads ({total_cdAs} CDAs)...")
+def setup_chrome_driver(download_dir: str, driver_path: str) -> webdriver.Chrome:
+    print("🔄 Starting services...")
+    chrome_options = Options()
+    chrome_options.add_argument("--log-level=3")
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_experimental_option("prefs", {
+        "download.default_directory": download_dir,
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "plugins.always_open_pdf_externally": True
+    })
+    service = Service(driver_path)
+    return webdriver.Chrome(service=service, options=chrome_options)
 
-# --- OPEN OUTPUT LOG AND START PROCESSING ---
-with open("output_log.csv", mode="a", newline='', encoding='utf-8') as log_file:
-    log_writer = csv.writer(log_file)
+def login_to_sitafe(driver: webdriver.Chrome, wait: WebDriverWait, username: str, password: str):
+    print("🔐 Logging into Sitafe...")
+    driver.get("https://sitafeweb.sefin.ro.gov.br/projudi")
+    username_input = wait.until(EC.visibility_of_element_located((By.NAME, "username")))
+    username_input.send_keys(username)
+    password_input = wait.until(EC.visibility_of_element_located((By.NAME, "password")))
+    password_input.send_keys(password)
+    login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Entrar')]")))
+    login_button.click()
+    wait.until(EC.presence_of_element_located((By.XPATH, "//h6[contains(text(), 'PROJUDI')]")))
 
-    # Write header only if the file was just created
-    if os.stat("output_log.csv").st_size == 0:
-        log_writer.writerow(["CDA", "Status", "Timestamp", "Message"])
+def navigate_to_cda_page(driver: webdriver.Chrome, wait: WebDriverWait):
+    projudi_button = wait.until(EC.element_to_be_clickable((
+        By.XPATH, "//div[contains(@class, 'text-orange')]//h6[contains(text(), 'PROJUDI')]"
+    )))
+    projudi_button.click()
+    impressao_cda_link = wait.until(
+        EC.presence_of_element_located((By.XPATH, "//a[contains(., 'CDA')]"))
+    )
+    driver.execute_script("arguments[0].click();", impressao_cda_link)
 
-    for index, cda in enumerate(cda_list_to_process, start=1):
-        success = False
-        attempts = 0
+def read_cda_csv(file_path: str) -> list:
+    with open(file_path, encoding='utf-8-sig', newline='') as file:
+        reader = csv.DictReader(file)
+        return [row['cda'].strip() for row in reader if row['cda'].strip()]
 
-        while not success and attempts <= max_retries:
-            try:
-                logging.info(f"Processing CDA: {cda} (Attempt {attempts + 1})")
+def read_previous_log(log_path: str) -> set:
+    processed = set()
+    try:
+        with open(log_path, mode="r", newline='', encoding="utf-8") as existing_log:
+            reader = csv.DictReader(existing_log)
+            for row in reader:
+                if row["Status"] == "Success":
+                    processed.add(row["CDA"].replace("'", "").strip())
+    except FileNotFoundError:
+        pass
+    return processed
 
-                cda_input = wait.until(EC.visibility_of_element_located((By.NAME, "PA_NU_CDA")))
-                cda_input.clear()
-                cda_input.send_keys(cda)
+def process_cda_list(driver, wait, cda_list, download_dir, log_path, max_retries=2):
+    processed_successfully = read_previous_log(log_path)
+    cda_list_to_process = []
+    for cda in cda_list:
+        if cda in processed_successfully:
+            print(f"[SKIPPED] CDA {cda} already marked as Success in log.")
+        else:
+            cda_list_to_process.append(cda)
 
-                search_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Pesquisar')]")))
-                search_button.click()
+    total_cdAs = len(cda_list_to_process)
+    print(f"📥 Starting downloads ({total_cdAs} CDAs)...")
 
-                download_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Imprimir')]")))
-                driver.execute_script("arguments[0].scrollIntoView(true);", download_button)
-                time.sleep(0.2)
-                driver.execute_script("arguments[0].click();", download_button)
+    with open(log_path, mode="a", newline='', encoding='utf-8') as log_file:
+        log_writer = csv.writer(log_file)
+        if os.stat(log_path).st_size == 0:
+            log_writer.writerow(["CDA", "Status", "Timestamp", "Message"])
 
-                log_writer.writerow([f"'{cda}", "Success", datetime.now().isoformat(), f"Downloaded on attempt {attempts + 1}"])
-                print(f"[ {index} / {total_cdAs} ] Processing CDA: {cda}... ✅")
-                success = True
+        for index, cda in enumerate(cda_list_to_process, start=1):
+            success = False
+            attempts = 0
 
-                time.sleep(1)
-       
-            except Exception as e:
-                attempts += 1
-                logging.warning(f"Attempt {attempts} failed for CDA {cda}: {e}")
-                if attempts > max_retries:
-                    log_writer.writerow([f"'{cda}", "Failed", datetime.now().isoformat(), str(e)])
-                    print(f"[ {index} / {total_cdAs} ] Processing CDA: {cda}... ❌")
-     
-print("\n✅ Downloads concluded.\n")
+            while not success and attempts <= max_retries:
+                try:
+                    logging.info(f"Processing CDA: {cda} (Attempt {attempts + 1})")
+                    cda_input = wait.until(EC.visibility_of_element_located((By.NAME, "PA_NU_CDA")))
+                    cda_input.clear()
+                    cda_input.send_keys(cda)
+                    search_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Pesquisar')]")))
+                    search_button.click()
+                    download_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Imprimir')]")))
+                    driver.execute_script("arguments[0].scrollIntoView(true);", download_button)
+                    time.sleep(0.2)
+                    driver.execute_script("arguments[0].click();", download_button)
+                    log_writer.writerow([f"'{cda}", "Success", datetime.now().isoformat(), f"Downloaded on attempt {attempts + 1}"])
+                    print(f"[ {index} / {total_cdAs} ] Processing CDA: {cda}... ✅")
+                    success = True
+                    time.sleep(1)
+                except Exception as e:
+                    attempts += 1
+                    logging.warning(f"Attempt {attempts} failed for CDA {cda}: {e}")
+                    if attempts > max_retries:
+                        log_writer.writerow([f"'{cda}", "Failed", datetime.now().isoformat(), str(e)])
+                        print(f"[ {index} / {total_cdAs} ] Processing CDA: {cda}... ❌")
 
-# --- CLOSE BROWSER AFTER ALL CDAs ARE PROCESSED ---
-driver.quit()
+    print("\n✅ Downloads concluded.\n")
 
-# Create a timestamped folder for this completed batch
-timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-archive_folder = os.path.join(download_dir, f"CDAs_{timestamp}")
-os.makedirs(archive_folder, exist_ok=True)
+def archive_downloaded_files(download_dir):
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    archive_folder = os.path.join(download_dir, f"CDAs_{timestamp}")
+    os.makedirs(archive_folder, exist_ok=True)
+    for filename in os.listdir(download_dir):
+        if filename.lower().endswith(".pdf"):
+            source_path = os.path.join(download_dir, filename)
+            destination_path = os.path.join(archive_folder, filename)
+            shutil.move(source_path, destination_path)
+    logging.info(f"✅ All downloaded CDAs moved to: {archive_folder}")
 
-# Move all PDF files from download_dir into archive_folder
-for filename in os.listdir(download_dir):
-    if filename.lower().endswith(".pdf"):
-        source_path = os.path.join(download_dir, filename)
-        destination_path = os.path.join(archive_folder, filename)
-        shutil.move(source_path, destination_path)
+def main():
+    print("Starting Script...")
+    setup_logging()
+    download_dir = setup_download_directory(r"C:\Users\rafae\Downloads\CDAs")
+    driver_path = r"C:\Users\rafae\OneDrive\Documentos\Projetos TI\debit-certificates-downloader\chromedriver.exe"
+    driver = setup_chrome_driver(download_dir, driver_path)
+    wait = WebDriverWait(driver, 10)
 
-logging.info(f"✅ All downloaded CDAs moved to: {archive_folder}")
+    cda_list = read_cda_csv("cdas.csv")
 
-# --- LOG COMPLETION ---
-logging.info("Finished processing all CDAs.")
+    login_to_sitafe(driver, wait, "02092091271", "Sitafe321")
+    navigate_to_cda_page(driver, wait)
+
+    process_cda_list(driver, wait, cda_list, download_dir, "output_log.csv")
+    driver.quit()
+
+    archive_downloaded_files(download_dir)
+    logging.info("Finished processing all CDAs.")
+    input("\nScript finalizado. Pressione Enter para fechar.")
+
+if __name__ == "__main__":
+    main()
