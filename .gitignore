@@ -1,9 +1,8 @@
 # Do not upload secrets or local files
 .env
-output_log.csv
+.venv
 log.txt
 __pycache__/
 *.pyc
 cdas.csv
-chromedriver.exe
-THIRD_PARTY_NOTICES.chromedriver
+temp_cdalist.csv

@@ -7,6 +7,7 @@ import time
 import csv
 import shutil
 import logging
+import traceback  
 
 # Third-party library imports
 from datetime import datetime
@@ -19,6 +20,15 @@ from selenium.webdriver.support import expected_conditions as EC
 from dotenv import load_dotenv
 load_dotenv()
 
+# Temporary Conditional import for Streamlit
+if os.getenv("STREAMLIT_RUN") == "1":
+    import streamlit as st
+    def streamlit_print(*args, **kwargs):
+        st.write(" ".join(str(a) for a in args))
+else:
+    def streamlit_print(*args, **kwargs):
+        print(*args, **kwargs)
+
 # Setup logging configuration
 def setup_logging():
     logging.basicConfig(
@@ -30,18 +40,22 @@ def setup_logging():
 # Setup download directory
 def setup_download_directory(path: str) -> str:
     if os.path.exists(path):
-        print(f"📁 Download folder found: {path}")
+        streamlit_print(f"📁 Download folder found: {path}")
     else:
-        print(f"📁 Download folder not found. It will be created: {path}")
+        streamlit_print(f"📁 Download folder not found. It will be created: {path}")
         os.makedirs(path, exist_ok=True)
     return os.path.abspath(path)
 
 # Setup Chrome driver with options
 def setup_chrome_driver(download_dir: str, driver_path: str) -> webdriver.Chrome:
-    print("🔄 Starting services...")
+    streamlit_print("🔄 Starting services...")
     chrome_options = Options()
-    chrome_options.add_argument("--log-level=3")
-    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--headless=new") # Use headless mode for background operation
+    chrome_options.add_argument("--disable-gpu") # Disable GPU acceleration
+    chrome_options.add_argument("--start-maximized") # Start maximized
+    chrome_options.add_argument("--disable-infobars") # Disable infobars
+    chrome_options.add_argument("--disable-extensions") # Disable extensions
+    chrome_options.add_argument("--log-level=3") # Suppress logs
     chrome_options.add_experimental_option("prefs", {
         "download.default_directory": download_dir,
         "download.prompt_for_download": False,
@@ -53,7 +67,7 @@ def setup_chrome_driver(download_dir: str, driver_path: str) -> webdriver.Chrome
 
 # Login to Sitafe system
 def login_to_sitafe(driver: webdriver.Chrome, wait: WebDriverWait, username: str, password: str):
-    print("🔐 Logging into Sitafe...")
+    streamlit_print("🔐 Logging into Sitafe...")
     driver.get("https://sitafeweb.sefin.ro.gov.br/projudi")
     username_input = wait.until(EC.visibility_of_element_located((By.NAME, "username")))
     username_input.send_keys(username)
@@ -85,100 +99,148 @@ def read_cda_csv(file_path: str) -> list:
     except FileNotFoundError:
         raise FileNotFoundError(f"CSV file '{file_path}' not found.")
 
-# Read previously processed log entries
-def read_previous_log(log_path: str) -> set:
-    processed_successfully = set()
-    try:
-        with open(log_path, mode="r", newline='', encoding="utf-8") as existing_log:
-            reader = csv.DictReader(existing_log)
-            for row in reader:
-                if row["Status"] == "Success":
-                    processed_successfully.add(row["CDA"].replace("'", "").strip())
-    except FileNotFoundError:
-        pass
-    return processed_successfully
+def process_cda_list(driver, wait, cda_list, download_dir, log_dir, max_retries=1):
+    # Prepare log file
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    log_filename = f"log_{timestamp}.csv"
+    log_path = os.path.join(log_dir, log_filename)
 
-# Process the list of CDAs and download them
-def process_cda_list(driver, wait, cda_list, download_dir, log_path, max_retries=2):
-    processed_successfully = read_previous_log(log_path)
-    cda_list_to_process = []
-    for cda in cda_list:
-        if cda in processed_successfully:
-            print(f"[SKIPPED] CDA {cda} already marked as Success in log.")
-        else:
-            cda_list_to_process.append(cda)
+    os.makedirs(log_dir, exist_ok=True)  # Ensure log folder exists
 
-    total_cdAs = len(cda_list_to_process)
-    print(f"📥 Starting downloads ({total_cdAs} CDAs)...")
+    total_cdAs = len(cda_list)
+    success_count = 0
+    streamlit_print(f"📥 Starting downloads ({total_cdAs} CDAs)...")
 
-    with open(log_path, mode="a", newline='', encoding='utf-8') as log_file:
+    with open(log_path, mode="w", newline='', encoding='utf-8') as log_file:
         log_writer = csv.writer(log_file)
-        if os.stat(log_path).st_size == 0:
-            log_writer.writerow(["CDA", "Status", "Timestamp", "Message"])
+        log_writer.writerow(["CDA", "Status", "Timestamp", "Message"])
 
-        for index, cda in enumerate(cda_list_to_process, start=1):
+        for index, cda in enumerate(cda_list, start=1):
             success = False
             attempts = 0
 
             while not success and attempts <= max_retries:
                 try:
                     logging.info(f"Processing CDA: {cda} (Attempt {attempts + 1})")
+
+                    # Fill CDA input
                     cda_input = wait.until(EC.visibility_of_element_located((By.NAME, "PA_NU_CDA")))
                     cda_input.clear()
                     cda_input.send_keys(cda)
+
+                    # Click "Pesquisar"
                     search_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Pesquisar')]")))
                     search_button.click()
+
+                    # Wait for and click "Imprimir"
                     download_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Imprimir')]")))
                     driver.execute_script("arguments[0].scrollIntoView(true);", download_button)
                     time.sleep(0.2)
                     driver.execute_script("arguments[0].click();", download_button)
+
+                    # Log success
                     log_writer.writerow([f"'{cda}", "Success", datetime.now().isoformat(), f"Downloaded on attempt {attempts + 1}"])
-                    print(f"[ {index} / {total_cdAs} ] Processing CDA: {cda}... ✅")
+                    streamlit_print(f"[ {index} / {total_cdAs} ] Processing CDA: {cda}... ✅")
                     success = True
+                    success_count += 1
                     time.sleep(1)
+
                 except Exception as e:
                     attempts += 1
-                    logging.warning(f"Attempt {attempts} failed for CDA {cda}: {e}")
+                    full_trace = traceback.format_exc()
+                    logging.warning(f"Attempt {attempts} failed for CDA {cda}:\n{full_trace}")
                     if attempts > max_retries:
-                        log_writer.writerow([f"'{cda}", "Failed", datetime.now().isoformat(), str(e)])
-                        print(f"[ {index} / {total_cdAs} ] Processing CDA: {cda}... ❌")
+                        log_writer.writerow([f"'{cda}", "Failed", datetime.now().isoformat(), full_trace])
+                        streamlit_print(f"[ {index} / {total_cdAs} ] Processing CDA: {cda}... ❌")
 
-    print("\n✅ Downloads concluded.\n")
 
-# Archive downloaded files into a timestamped folder
-def archive_downloaded_files(download_dir):
+    streamlit_print(f"\n✅ Finished downloading. Log saved to: {log_path}\n")
+    return total_cdAs, success_count, log_path
+
+# ARCHIVE DOWNLOADED FILES INTO A TIMESTAMPED FOLDER
+
+def archive_downloaded_files(download_dir, log_path=None):
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     archive_folder = os.path.join(download_dir, f"CDAs_{timestamp}")
     os.makedirs(archive_folder, exist_ok=True)
+
+    # Move downloaded PDF files to the archive folder
     for filename in os.listdir(download_dir):
         if filename.lower().endswith(".pdf"):
-            source_path = os.path.join(download_dir, filename)
-            destination_path = os.path.join(archive_folder, filename)
-            shutil.move(source_path, destination_path)
+            shutil.move(os.path.join(download_dir, filename), os.path.join(archive_folder, filename))
+    
+    # Move log file if provided, and update its path
+    if log_path and os.path.exists(log_path):
+        log_filename = os.path.basename(log_path)
+        new_log_path = os.path.join(archive_folder, log_filename)
+        shutil.move(log_path, new_log_path)
+        log_path = new_log_path  # Update variable to point to new location
+
     logging.info(f"✅ All downloaded CDAs moved to: {archive_folder}")
+    return archive_folder, log_path
 
-# Main function to run the script
-def main():
-    print("Starting Script...")
+# RUN AND DOWNLOAD FROM A FILE (Streamlit)
+
+def run_download_from_file(file_path):    
+
     setup_logging()
+    
+    # Read CDA list properly (auto-handles CSV)
+    cda_list = read_cda_csv(file_path)
 
+    # Load environment variables
+       
     username = os.getenv("SITAFE_USERNAME")
     password = os.getenv("SITAFE_PASSWORD")
     driver_path = os.getenv("CHROMEDRIVER_PATH")
-    download_dir = os.getenv("DOWNLOAD_DIR")
+    download_dir = os.getenv("DOWNLOAD_DIR") or "downloads"
+    log_dir = "logs"
 
+    # Start Chrome driver
     driver = setup_chrome_driver(download_dir, driver_path)
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 15)
 
-    cda_list = read_cda_csv("cdas.csv")
-
+    # 🧭 Login and navigate
     login_to_sitafe(driver, wait, username, password)
     navigate_to_cda_page(driver, wait)
 
-    process_cda_list(driver, wait, cda_list, download_dir, "output_log.csv")
+    # Process CDAs
+    total, success_count, log_path = process_cda_list(driver, wait, cda_list, download_dir, log_dir)
+
+    # Archive and Cleanup
+    archive_folder, log_path = archive_downloaded_files(download_dir, log_path)
+    driver.quit()
+    return total, success_count, log_path, archive_folder
+
+
+# Main function to run the script
+def main():
+    streamlit_print("Starting Script...")
+    setup_logging()
+
+    # Load env vars
+    username = os.getenv("SITAFE_USERNAME")
+    password = os.getenv("SITAFE_PASSWORD")
+    driver_path = os.getenv("CHROMEDRIVER_PATH")
+    download_dir = os.getenv("DOWNLOAD_DIR") or "downloads"
+    log_dir = "logs"
+
+    # Setup driver
+    driver = setup_chrome_driver(download_dir, driver_path)
+    wait = WebDriverWait(driver, 10)
+
+    # Load CDA list from CSV
+    cda_list = read_cda_csv("cdas.csv")
+
+    # Run
+    login_to_sitafe(driver, wait, username, password)
+    navigate_to_cda_page(driver, wait)
+    process_cda_list(driver, wait, cda_list, download_dir, log_dir)
+    
+    # Archive downloaded files and quit
+    archive_downloaded_files(download_dir)
     driver.quit()
 
-    archive_downloaded_files(download_dir)
     logging.info("Finished processing all CDAs.")
     input("\nScript finalizado. Pressione Enter para fechar.")
 
