@@ -1,57 +1,61 @@
-# Gerenciador de CDAs - DETRAN/RO
-# This is a Streamlit app that allows users to upload a list of CDAs (Certificados de Débito)
-# and automate their download through Sitafe via the 'debit_certificates_manager' module.
+# 📄 Streamlit Web App for CDA Manager
+# This app allows uploading a list of CDAs and downloading them via Sitafe automation
 
 import streamlit as st
 import os
 import pandas as pd
-from debit_certificates_manager import run_download_from_file
 from datetime import datetime
+from pathlib import Path
+from debit_certificates_manager import run_download_from_file
 
-# Generate a timestamp for file uniqueness
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-# Set Streamlit page configuration
 st.set_page_config(page_title="Gerenciador de CDAs", layout="centered")
-
-# Page title
 st.title("📄 Gerenciador de CDAs - DETRAN/RO")
+st.markdown("Carregue sua lista de CDAs e informe suas credenciais para iniciar o download.")
 
-# Instructional text
-st.markdown("Carregue sua lista de CDAs abaixo para iniciar o download.")
+# 🔐 User credentials
+username = st.text_input("👤 CPF", type="default")
+password = st.text_input("🔒 Senha do SitafeWeb", type="password")
 
-# File uploader for .csv or .txt files
-uploaded_file = st.file_uploader("📂 Upload da lista de CDAs (.txt ou .csv)", type=["txt", "csv"])
+# 📤 Upload CSV File
+uploaded_file = st.file_uploader("📂 Carregue aqui sua lista de CDAs (.txt ou .csv)", type=["txt", "csv"])
+st.caption("Arraste e solte o arquivo aqui ou clique para selecionar. Tamanho máximo: 200MB.")
 
-# Notify user after upload
+
+# 📁 Define default download folder to user Downloads
+default_download_path = str(Path.home() / "Downloads" / "CDAs")
+st.markdown(f"🗂️ Os arquivos serão salvos em: `{default_download_path}`")
+
 if uploaded_file is not None:
     st.success("Arquivo carregado com sucesso!")
 
-# Main action button
 if st.button("▶️ Baixar CDAs"):
-    if uploaded_file is None:
-        st.error("Você precisa carregar um arquivo antes de iniciar.")
+    if not uploaded_file or not username or not password:
+        st.error("⚠️ Por favor, preencha todos os campos obrigatórios.")
     else:
-        st.info("🔄 Iniciando...")
-    
+        st.info("🔄 Iniciando serviço...")
         try:
-            # 💾 Save uploaded file to a temporary local path
-            st.write("📂 Carregando lista de CDAs...")
+            # 💾 Save file temporarily
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             temp_path = f"temp_cdalist_{timestamp}.csv"
             with open(temp_path, "wb") as f:
                 f.write(uploaded_file.read())
+            st.info("📄 Lista pronta para download.")
 
-            # ⚙️ Run the automation and retrieve result summary
-            st.write("📥 Iniciando o download...")
+            # ⚙️ Run the main automation
             os.environ["STREAMLIT_RUN"] = "1"
-            total, success_count, log_path, archive_folder = run_download_from_file(temp_path)
-            
-            # 📁 Display paths used
-            st.write("✅ Finalizado.")
+            st.info("⬇️ Fazendo download das CDAs...")
+            total, success_count, log_path, archive_folder = run_download_from_file(
+                file_path=temp_path,
+                username=username,
+                password=password,
+                download_dir=default_download_path
+            )
+
+            # 🧾 Show final paths and log
+            st.write("✅ Script executado com sucesso.")
             st.write(f"📁 Pasta de download: `{archive_folder}`")
             st.write(f"📝 Log file gerado: `{log_path}`")
-            
-            # 📊 Load and display the resulting CSV log
+
             try:
                 df = pd.read_csv(log_path)
                 st.subheader("📊 Relatório de Execução")
@@ -61,13 +65,10 @@ if st.button("▶️ Baixar CDAs"):
             except Exception as e:
                 st.warning(f"⚠️ Falha ao carregar log: {e}")
 
-            
-            # ✅ User feedback based on results
             if success_count == 0:
                 st.error("❌ Nenhuma CDA foi baixada com sucesso.")
             else:
                 st.success(f"✅ {success_count} de {total} CDAs baixadas com sucesso.")
 
         except Exception as e:
-            # Handle unexpected failure during automation
             st.error(f"Erro ao executar a automação: {e}")
