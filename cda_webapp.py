@@ -7,73 +7,72 @@ import os
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
+from typing import Tuple, Union
 from debit_certificates_manager import run_download_from_file
+from io import BytesIO
 
-# VALIDATE CSV FUNCTION
-def validate_csv_structure(uploaded_file, required_column="cda"):
-    """
-    Validates that the uploaded CSV file contains the required column.
-    Returns a tuple (is_valid: bool, dataframe or error message).
-    """
+# 🔍 VALIDATE CSV FUNCTION
+def validate_csv_structure(file_obj: BytesIO, required_column: str = "cda") -> Tuple[bool, Union[pd.DataFrame, str]]:
     try:
-        df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
+        df = pd.read_csv(file_obj, encoding='utf-8-sig', dtype={required_column: str})
         if required_column not in df.columns:
-            return False, f"❌ O arquivo precisa contar uma coluna '{required_column}'."
+            return False, f"❌ O arquivo precisa conter uma coluna '{required_column}'."
+        df[required_column] = df[required_column].astype(str)  # 🗫️ segurança extra
         return True, df
     except Exception as e:
         return False, f"❌ Erro carregando o arquivo: {e}"
-    
-# SETUP STREAMLIT PAGE CONFIGURATION
+
+# 🔧 SETUP STREAMLIT PAGE CONFIGURATION
 st.set_page_config(page_title="Gerenciador de CDAs", layout="centered", page_icon="📄")
 st.title("📄 Gerenciador de CDAs")
 st.markdown("Carregue sua lista de CDAs e informe suas credenciais para iniciar o download.")
 
 # 🔐 USER CREDENTIALS
-username = st.text_input("👤 CPF", type="default")
-password = st.text_input("🔒 Senha do SitafeWeb", type="password")
+username: str = st.text_input("👤 CPF", type="default")
+password: str = st.text_input("🔒 Senha do SitafeWeb", type="password")
 
-# 📤 UPLOAD CSV FILE
+# 📄 UPLOAD CSV FILE
 uploaded_file = st.file_uploader("📂 Carregue aqui sua lista de CDAs (.txt ou .csv)", type=["txt", "csv"])
 st.caption("Arraste e solte o arquivo aqui ou clique para selecionar. Tamanho máximo: 200MB.")
 
+# 🗁 DEFINE DEFAULT DOWNLOAD FOLDER TO USER DOWNLOADS
+default_download_path: str = str(Path.home() / "Downloads" / "CDAs")
+st.markdown(f"📂 Os arquivos serão salvos em: `{default_download_path}`")
 
-# 📁 DEFINE DEFAULT DOWNLOAD FOLDER TO USER DOWNLOADS
-default_download_path = str(Path.home() / "Downloads" / "CDAs")
-st.markdown(f"🗂️ Os arquivos serão salvos em: `{default_download_path}`")
-
-# 📥 CHECK IF FILE IS UPLOADED AND RUN VALIDATION
+# 📅 CHECK IF FILE IS UPLOADED AND RUN VALIDATION
 if uploaded_file is not None:
     st.success("Arquivo carregado com sucesso!")
 
-    is_valid, result = validate_csv_structure(uploaded_file)
+    buffer = BytesIO(uploaded_file.read())
+    is_valid, result = validate_csv_structure(buffer)
+    buffer.seek(0)
 
-    if not is_valid:
-        st.error(result)
-        uploaded_file = None  # Prevents further execution
-    else:
+    if is_valid:
         df_uploaded = result
-        file_bytes = uploaded_file.read()  # ⚠️ Salva o conteúdo do arquivo apenas uma vez
+        st.write(df_uploaded["cda"].head()) 
 
+        # ▶️ Show download button only if valid
         if st.button("▶️ Baixar CDAs"):
-            # 🚨 VALIDATE INPUTS
             if not username or not password:
                 st.error("⚠️ Por favor, preencha todos os campos obrigatórios.")
             else:
                 st.info("🔄 Iniciando serviço...")
 
                 try:
-                    # 💾 SAVE FILE TEMPORARILY
+                    # 📂 Save file temporarily
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     temp_path = f"temp_cdalist_{timestamp}.csv"
-                    with open(temp_path, "wb") as f:
-                        f.write(file_bytes)  # ✅ Usa o conteúdo salvo corretamente
 
-                    # 📋 CREATE STATUS PLACEHOLDER
+                    buffer.seek(0)  # ⬇️ Rewind buffer before saving
+                    with open(temp_path, "wb") as f:
+                        f.write(buffer.read())
+
+                    # 📋 Status placeholder
                     status_placeholder = st.empty()
                     def update_status(index, total, cda_number):
-                        status_placeholder.info(f"🔄 Processing {index} of {total}: CDA {cda_number}...")
+                        status_placeholder.info(f"🔄 Processando {index} de {total}: CDA {cda_number}...")
 
-                    # ⚙️ RUN THE MAIN AUTOMATION
+                    # ⚙️ Run the main automation
                     os.environ["STREAMLIT_RUN"] = "1"
                     st.info("⬇️ Acessando SitafeWeb e fazendo download das CDAs...")
                     total, success_count, log_path, archive_folder = run_download_from_file(
@@ -84,10 +83,10 @@ if uploaded_file is not None:
                         update_callback=update_status
                     )
 
-                    # 🧾 SHOW FINAL PATHS AND LOG
+                    # ✅ Show results
                     st.write("✅ Script executado com sucesso.")
                     st.write(f"📁 Pasta de download: `{archive_folder}`")
-                    st.write(f"📝 Log file gerado: `{log_path}`")
+                    st.write(f"📜 Log file gerado: `{log_path}`")
 
                     try:
                         df = pd.read_csv(log_path)
@@ -105,14 +104,3 @@ if uploaded_file is not None:
 
                 except Exception as e:
                     st.error(f"Erro ao executar a automação: {e}")
-
-                    if success_count == 0:
-                        st.error("❌ Nenhuma CDA foi baixada com sucesso.")
-                    else:
-                        st.success(f"✅ {success_count} de {total} CDAs baixadas com sucesso.")
-
-                except Exception as e:
-                    st.error(f"Erro ao executar a automação: {e}")
-
-
-

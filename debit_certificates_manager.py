@@ -1,15 +1,16 @@
 # DEBIT CERTIFICATES MANAGER SCRIPT
 # THIS SCRIPT AUTOMATES THE PROCESS OF DOWNLOADING DEBIT CERTIFICATES (CDAS) FROM THE SITAFE SYSTEM.
 
-# STANDARD LIBRARY IMPORTS
+# ✅ STANDARD LIBRARY IMPORTS
 import os
 import time
 import csv
 import shutil
 import logging
-import traceback  
+import traceback
+from typing import Callable, Optional, Tuple
 
-# THIRD-PARTY LIBRARY IMPORTS
+# ✅ THIRD-PARTY LIBRARY IMPORTS
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -18,7 +19,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# TEMPORARY CONDITIONAL IMPORT FOR STREAMLIT
+
+# ✅ STREAMLIT CONDITIONAL IMPORT
 if os.getenv("STREAMLIT_RUN") == "1":
     import streamlit as st
     def streamlit_print(*args, **kwargs):
@@ -27,15 +29,16 @@ else:
     def streamlit_print(*args, **kwargs):
         print(*args, **kwargs)
 
-# SETUP LOGGING CONFIGURATION
-def setup_logging():
+# ✅ SETUP LOGGING CONFIGURATION
+def setup_logging() -> None:
     logging.basicConfig(
         filename="log.txt",
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
 
-# SETUP DOWNLOAD DIRECTORY
+# ✅ SETUP DOWNLOAD DIRECTORY
+
 def setup_download_directory(path: str) -> str:
     if os.path.exists(path):
         streamlit_print(f"📁 Pasta de download encontrada: {path}")
@@ -44,8 +47,9 @@ def setup_download_directory(path: str) -> str:
         os.makedirs(path, exist_ok=True)
     return os.path.abspath(path)
 
-# SETUP CHROME DRIVER WITH OPTIONS
-def setup_chrome_driver(download_dir: str, driver_path: str = None) -> webdriver.Chrome:
+# ✅ SETUP CHROME DRIVER WITH OPTIONS
+
+def setup_chrome_driver(download_dir: str, driver_path: Optional[str] = None) -> webdriver.Chrome:
     streamlit_print("🔄 Iniciando serviços...")
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
@@ -70,8 +74,9 @@ def setup_chrome_driver(download_dir: str, driver_path: str = None) -> webdriver
     service = Service(driver_path)
     return webdriver.Chrome(service=service, options=chrome_options)
 
-# LOGIN TO SITAFE SYSTEM
-def login_to_sitafe(driver: webdriver.Chrome, wait: WebDriverWait, username: str, password: str):
+# ✅ LOGIN TO SITAFE SYSTEM
+
+def login_to_sitafe(driver: webdriver.Chrome, wait: WebDriverWait, username: str, password: str) -> None:
     streamlit_print("🔐 Fazendo login no SitafeWeb...")
     driver.get("https://sitafeweb.sefin.ro.gov.br/projudi")
 
@@ -82,18 +87,17 @@ def login_to_sitafe(driver: webdriver.Chrome, wait: WebDriverWait, username: str
     login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Entrar')]")))
     login_button.click()
     try:
-        # WAIT FOR THE PAGE TO LOAD AFTER LOGIN
         wait.until(EC.presence_of_element_located((By.XPATH, "//h6[contains(text(), 'PROJUDI')]")))
     except:
-        # IF LOGIN FAILS, DISPLAY ERROR MESSAGE
         try:
             error_message = driver.find_element(By.XPATH, "//div[contains(@class, 'alert')]").text
             raise Exception(f"❌ Falha no login: {error_message}")
         except:
             raise Exception("❌ Falha no login: CPF ou senha inválidos ou erro inesperado.")
 
-# NAVIGATION TO THE CDA DOWNLOAD PAGE
-def navigate_to_cda_page(driver: webdriver.Chrome, wait: WebDriverWait):
+# ✅ NAVIGATE TO CDA PAGE
+
+def navigate_to_cda_page(driver: webdriver.Chrome, wait: WebDriverWait) -> None:
     projudi_button = wait.until(EC.element_to_be_clickable((
         By.XPATH, "//div[contains(@class, 'text-orange')]//h6[contains(text(), 'PROJUDI')]"
     )))
@@ -103,19 +107,32 @@ def navigate_to_cda_page(driver: webdriver.Chrome, wait: WebDriverWait):
     )
     driver.execute_script("arguments[0].click();", impressao_cda_link)
 
-# READ CDA LIST FROM CSV FILE
-def read_cda_csv(file_path: str) -> list:
+# ✅ READ CDA LIST FROM FILE
+
+def read_cda_csv(file_path: str) -> list[str]:
     try:
         with open(file_path, encoding='utf-8-sig', newline='') as file:
             reader = csv.DictReader(file)
+            if not reader.fieldnames:
+                raise ValueError("O arquivo está vazio ou mal formatado (sem cabeçalho).")
             if 'cda' not in reader.fieldnames:
-                raise ValueError("Column 'cda' not found in the CSV file.")
-            return [row['cda'].strip() for row in reader if row['cda'].strip()]
+                raise ValueError("Coluna 'cda' não encontrada no arquivo CSV.")
+            return [str(row['cda']).strip() for row in reader if str(row['cda']).strip()]
     except FileNotFoundError:
-        raise FileNotFoundError(f"CSV file '{file_path}' not found.")
+        raise FileNotFoundError(f"Arquivo CSV '{file_path}' não encontrado.")
 
-# PROCESS CDA LIST AND DOWNLOAD CERTIFICATES
-def process_cda_list(driver, wait, cda_list, download_dir, log_dir, max_retries=1, update_callback=None):
+
+# ✅ PROCESS CDA LIST AND DOWNLOAD EACH CERTIFICATE
+
+def process_cda_list(
+    driver: webdriver.Chrome,
+    wait: WebDriverWait,
+    cda_list: list[str],
+    download_dir: str,
+    log_dir: str,
+    max_retries: int = 1,
+    update_callback: Optional[Callable[[int, int, str], None]] = None
+) -> Tuple[int, int, str]:
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_filename = f"log_{timestamp}.csv"
     log_path = os.path.join(log_dir, log_filename)
@@ -144,7 +161,14 @@ def process_cda_list(driver, wait, cda_list, download_dir, log_dir, max_retries=
                     cda_input.clear()
                     cda_input.send_keys(cda)
 
-                    search_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Pesquisar')]")))
+                    try:
+                        WebDriverWait(driver, 2).until(
+                            EC.invisibility_of_element_located((By.CLASS_NAME, "swal2-container"))
+                        )
+                    except:
+                        pass  # Se não tiver popup, segue normalmente
+                    
+                    search_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Pesquisar')]")))               
                     search_button.click()
 
                     download_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Imprimir')]")))
@@ -165,16 +189,16 @@ def process_cda_list(driver, wait, cda_list, download_dir, log_dir, max_retries=
                     if attempts > max_retries:
                         log_writer.writerow([f"'{cda}", "Failed", datetime.now().isoformat(), full_trace])
                         streamlit_print(f"[ {index} / {total_cdAs} ] Processando CDAs: {cda}... ❌")
-        # END OF CDA PROCESSING LOOP
-        # UPDATE CALLBACK FOR FINAL STATUS
+
         if update_callback and total_cdAs > 0:
             update_callback(total_cdAs, total_cdAs, "✅ All CDAs processed successfully.")
 
     streamlit_print(f"\n✅ Downloads finalizados.\n")
     return total_cdAs, success_count, log_path
 
-# ARCHIVE DOWNLOADED FILES
-def archive_downloaded_files(download_dir, log_path=None):
+# ✅ ARCHIVE ALL DOWNLOADED FILES
+
+def archive_downloaded_files(download_dir: str, log_path: Optional[str] = None) -> Tuple[str, Optional[str]]:
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     archive_folder = os.path.join(download_dir, f"CDAs_{timestamp}")
     os.makedirs(archive_folder, exist_ok=True)
@@ -192,8 +216,16 @@ def archive_downloaded_files(download_dir, log_path=None):
     logging.info(f"✅ All downloaded CDAs moved to: {archive_folder}")
     return archive_folder, log_path
 
-# RUN DOWNLOAD FROM FILE FUNCTION
-def run_download_from_file(file_path, username, password, download_dir, driver_path=None, update_callback=None):
+# ✅ FULL WRAPPER FUNCTION TO RUN EVERYTHING FROM STREAMLIT
+
+def run_download_from_file(
+    file_path: str,
+    username: str,
+    password: str,
+    download_dir: str,
+    driver_path: Optional[str] = None,
+    update_callback: Optional[Callable[[int, int, str], None]] = None
+) -> Tuple[int, int, str, str]:
     setup_logging()
     cda_list = read_cda_csv(file_path)
 
@@ -204,11 +236,11 @@ def run_download_from_file(file_path, username, password, download_dir, driver_p
 
     login_to_sitafe(driver, wait, username, password)
     navigate_to_cda_page(driver, wait)
-    total, success_count, log_path = process_cda_list(driver, wait, cda_list, download_dir, log_dir, uptade_callback=update_callback)
+    total, success_count, log_path = process_cda_list(driver, wait, cda_list, download_dir, log_dir, update_callback=update_callback)
     archive_folder, log_path = archive_downloaded_files(download_dir, log_path)
     driver.quit()
     return total, success_count, log_path, archive_folder
 
-# MAIN FUNCTION FOR STREAMLIT INTERFACE
+# ✅ ENTRY POINT FOR SCRIPT EXECUTION
 if __name__ == "__main__":
     print("Please use the Streamlit interface to run this script.")
