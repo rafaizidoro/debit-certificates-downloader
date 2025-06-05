@@ -115,7 +115,7 @@ def read_cda_csv(file_path: str) -> list:
         raise FileNotFoundError(f"CSV file '{file_path}' not found.")
 
 # PROCESS CDA LIST AND DOWNLOAD CERTIFICATES
-def process_cda_list(driver, wait, cda_list, download_dir, log_dir, max_retries=1):
+def process_cda_list(driver, wait, cda_list, download_dir, log_dir, max_retries=1, update_callback=None):
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_filename = f"log_{timestamp}.csv"
     log_path = os.path.join(log_dir, log_filename)
@@ -131,6 +131,8 @@ def process_cda_list(driver, wait, cda_list, download_dir, log_dir, max_retries=
         log_writer.writerow(["CDA", "Status", "Timestamp", "Message"])
 
         for index, cda in enumerate(cda_list, start=1):
+            if update_callback:
+                update_callback(index, total_cdAs, cda)
             success = False
             attempts = 0
 
@@ -163,6 +165,10 @@ def process_cda_list(driver, wait, cda_list, download_dir, log_dir, max_retries=
                     if attempts > max_retries:
                         log_writer.writerow([f"'{cda}", "Failed", datetime.now().isoformat(), full_trace])
                         streamlit_print(f"[ {index} / {total_cdAs} ] Processando CDAs: {cda}... ❌")
+        # END OF CDA PROCESSING LOOP
+        # UPDATE CALLBACK FOR FINAL STATUS
+        if update_callback and total_cdAs > 0:
+            update_callback(total_cdAs, total_cdAs, "✅ All CDAs processed successfully.")
 
     streamlit_print(f"\n✅ Downloads finalizados.\n")
     return total_cdAs, success_count, log_path
@@ -187,7 +193,7 @@ def archive_downloaded_files(download_dir, log_path=None):
     return archive_folder, log_path
 
 # RUN DOWNLOAD FROM FILE FUNCTION
-def run_download_from_file(file_path, username, password, download_dir, driver_path=None):
+def run_download_from_file(file_path, username, password, download_dir, driver_path=None, update_callback=None):
     setup_logging()
     cda_list = read_cda_csv(file_path)
 
@@ -198,7 +204,7 @@ def run_download_from_file(file_path, username, password, download_dir, driver_p
 
     login_to_sitafe(driver, wait, username, password)
     navigate_to_cda_page(driver, wait)
-    total, success_count, log_path = process_cda_list(driver, wait, cda_list, download_dir, log_dir)
+    total, success_count, log_path = process_cda_list(driver, wait, cda_list, download_dir, log_dir, uptade_callback=update_callback)
     archive_folder, log_path = archive_downloaded_files(download_dir, log_path)
     driver.quit()
     return total, success_count, log_path, archive_folder

@@ -44,55 +44,75 @@ st.markdown(f"🗂️ Os arquivos serão salvos em: `{default_download_path}`")
 # 📥 CHECK IF FILE IS UPLOADED AND RUN VALIDATION
 if uploaded_file is not None:
     st.success("Arquivo carregado com sucesso!")
-is_valid, result = validate_csv_structure(uploaded_file)
-if not is_valid:
-    st.error(result)
-    uploaded_file = None  # Prevents further execution
-else:
-    df_uploaded = result
 
-# DOWNLOAD FUNCTIONALITY
-if st.button("▶️ Baixar CDAs"):
-    # 🚨 VALIDATE INPUTS
-    if not uploaded_file or not username or not password:
-        st.error("⚠️ Por favor, preencha todos os campos obrigatórios.")
+    is_valid, result = validate_csv_structure(uploaded_file)
+
+    if not is_valid:
+        st.error(result)
+        uploaded_file = None  # Prevents further execution
     else:
-        st.info("🔄 Iniciando serviço...")
-        try:
-            # 💾 SAVE FILE TEMPORARILY
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            temp_path = f"temp_cdalist_{timestamp}.csv"
-            with open(temp_path, "wb") as f:
-                f.write(uploaded_file.read())
-            
-            # ⚙️ RUN THE MAIN AUTOMATION
-            os.environ["STREAMLIT_RUN"] = "1"
-            st.info("⬇️ Acessando SitafeWeb e fazendo download das CDAs...")
-            total, success_count, log_path, archive_folder = run_download_from_file(
-                file_path=temp_path,
-                username=username,
-                password=password,
-                download_dir=default_download_path
-            )
+        df_uploaded = result
+        file_bytes = uploaded_file.read()  # ⚠️ Salva o conteúdo do arquivo apenas uma vez
 
-            # 🧾 SHOW FINAL PATHS AND LOG
-            st.write("✅ Script executado com sucesso.")
-            st.write(f"📁 Pasta de download: `{archive_folder}`")
-            st.write(f"📝 Log file gerado: `{log_path}`")
-
-            try:
-                df = pd.read_csv(log_path)
-                st.subheader("📊 Relatório de Execução")
-                st.dataframe(df)
-                with open(log_path, "rb") as f:
-                    st.download_button("⬇️ Baixar Relatório", f, file_name=os.path.basename(log_path), mime="text/csv")
-            except Exception as e:
-                st.warning(f"⚠️ Falha ao carregar log: {e}")
-
-            if success_count == 0:
-                st.error("❌ Nenhuma CDA foi baixada com sucesso.")
+        if st.button("▶️ Baixar CDAs"):
+            # 🚨 VALIDATE INPUTS
+            if not username or not password:
+                st.error("⚠️ Por favor, preencha todos os campos obrigatórios.")
             else:
-                st.success(f"✅ {success_count} de {total} CDAs baixadas com sucesso.")
+                st.info("🔄 Iniciando serviço...")
 
-        except Exception as e:
-            st.error(f"Erro ao executar a automação: {e}")
+                try:
+                    # 💾 SAVE FILE TEMPORARILY
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    temp_path = f"temp_cdalist_{timestamp}.csv"
+                    with open(temp_path, "wb") as f:
+                        f.write(file_bytes)  # ✅ Usa o conteúdo salvo corretamente
+
+                    # 📋 CREATE STATUS PLACEHOLDER
+                    status_placeholder = st.empty()
+                    def update_status(index, total, cda_number):
+                        status_placeholder.info(f"🔄 Processing {index} of {total}: CDA {cda_number}...")
+
+                    # ⚙️ RUN THE MAIN AUTOMATION
+                    os.environ["STREAMLIT_RUN"] = "1"
+                    st.info("⬇️ Acessando SitafeWeb e fazendo download das CDAs...")
+                    total, success_count, log_path, archive_folder = run_download_from_file(
+                        file_path=temp_path,
+                        username=username,
+                        password=password,
+                        download_dir=default_download_path,
+                        update_callback=update_status
+                    )
+
+                    # 🧾 SHOW FINAL PATHS AND LOG
+                    st.write("✅ Script executado com sucesso.")
+                    st.write(f"📁 Pasta de download: `{archive_folder}`")
+                    st.write(f"📝 Log file gerado: `{log_path}`")
+
+                    try:
+                        df = pd.read_csv(log_path)
+                        st.subheader("📊 Relatório de Execução")
+                        st.dataframe(df)
+                        with open(log_path, "rb") as f:
+                            st.download_button("⬇️ Baixar Relatório", f, file_name=os.path.basename(log_path), mime="text/csv")
+                    except Exception as e:
+                        st.warning(f"⚠️ Falha ao carregar log: {e}")
+
+                    if success_count == 0:
+                        st.error("❌ Nenhuma CDA foi baixada com sucesso.")
+                    else:
+                        st.success(f"✅ {success_count} de {total} CDAs baixadas com sucesso.")
+
+                except Exception as e:
+                    st.error(f"Erro ao executar a automação: {e}")
+
+                    if success_count == 0:
+                        st.error("❌ Nenhuma CDA foi baixada com sucesso.")
+                    else:
+                        st.success(f"✅ {success_count} de {total} CDAs baixadas com sucesso.")
+
+                except Exception as e:
+                    st.error(f"Erro ao executar a automação: {e}")
+
+
+
