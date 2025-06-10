@@ -70,7 +70,7 @@ if uploaded_file is not None:
                     # 📋 Status placeholder
                     status_placeholder = st.empty()
                     def update_status(index, total, cda_number):
-                        status_placeholder.info(f"🔄 Processando {index} de {total}: CDA {cda_number}...")
+                        status_placeholder.info(f"🔄 Processadas {index} de {total}: CDA {cda_number}...")
 
                     # ⚙️ Run the main automation
                     os.environ["STREAMLIT_RUN"] = "1"
@@ -83,10 +83,14 @@ if uploaded_file is not None:
                         update_callback=update_status
                     )
 
+                    # 🧹 Delete temporary CSV file after processing
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+                        
                     # ✅ Show results
-                    st.write("✅ Script executado com sucesso.")
+                    st.write("✅ Processo finalizado.")
                     st.write(f"📁 Pasta de download: `{archive_folder}`")
-                    st.write(f"📜 Log file gerado: `{log_path}`")
+                    st.write(f"📜 Relatório gerado: `{log_path}`")
 
                     try:
                         df = pd.read_csv(log_path)

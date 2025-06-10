@@ -191,7 +191,7 @@ def process_cda_list(
                         streamlit_print(f"[ {index} / {total_cdAs} ] Processando CDAs: {cda}... ❌")
 
         if update_callback and total_cdAs > 0:
-            update_callback(total_cdAs, total_cdAs, "✅ All CDAs processed successfully.")
+            update_callback(total_cdAs, total_cdAs, "✅ Todas CDAs processadas com sucesso.")
 
     streamlit_print(f"\n✅ Downloads finalizados.\n")
     return total_cdAs, success_count, log_path
