@@ -19,6 +19,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+# ✅ BASE DIRECTORY SETUP
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ✅ STREAMLIT CONDITIONAL IMPORT
 if os.getenv("STREAMLIT_RUN") == "1":
@@ -29,17 +31,21 @@ else:
     def streamlit_print(*args, **kwargs):
         print(*args, **kwargs)
 
+
+
 # ✅ SETUP LOGGING CONFIGURATION
 def setup_logging() -> None:
     logging.basicConfig(
-        filename="log.txt",
+        filename=os.path.join(BASE_DIR, "log.txt"),
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
-    )
+        )
 
 # ✅ SETUP DOWNLOAD DIRECTORY
 
 def setup_download_directory(path: str) -> str:
+    if not os.path.isabs(path):
+        path = os.path.join(BASE_DIR, path)
     if os.path.exists(path):
         streamlit_print(f"📁 Pasta de download encontrada: {path}")
     else:
@@ -66,7 +72,7 @@ def setup_chrome_driver(download_dir: str, driver_path: Optional[str] = None) ->
     })
 
     if not driver_path:
-        driver_path = os.path.join(os.path.dirname(__file__), "bin", "chromedriver.exe")
+        driver_path = os.path.join(BASE_DIR, "bin", "chromedriver.exe")
 
     if not os.path.exists(driver_path):
         raise FileNotFoundError(f"Chromedriver not found at: {driver_path}")
@@ -110,6 +116,9 @@ def navigate_to_cda_page(driver: webdriver.Chrome, wait: WebDriverWait) -> None:
 # ✅ READ CDA LIST FROM FILE
 
 def read_cda_csv(file_path: str) -> list[str]:
+    if not os.path.isabs(file_path):
+        file_path = os.path.join(BASE_DIR, file_path)
+
     try:
         with open(file_path, encoding='utf-8-sig', newline='') as file:
             reader = csv.DictReader(file)
@@ -120,6 +129,7 @@ def read_cda_csv(file_path: str) -> list[str]:
             return [str(row['cda']).strip() for row in reader if str(row['cda']).strip()]
     except FileNotFoundError:
         raise FileNotFoundError(f"Arquivo CSV '{file_path}' não encontrado.")
+
 
 
 # ✅ PROCESS CDA LIST AND DOWNLOAD EACH CERTIFICATE
@@ -135,10 +145,11 @@ def process_cda_list(
 ) -> Tuple[int, int, str]:
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     log_filename = f"log_{timestamp}.csv"
-    log_path = os.path.join(log_dir, log_filename)
 
+    log_dir = os.path.join(BASE_DIR, log_dir)
     os.makedirs(log_dir, exist_ok=True)
 
+    log_path = os.path.join(log_dir, log_filename)
     total_cdAs = len(cda_list)
     success_count = 0
     streamlit_print(f"🗕 Iniciando o download de ({total_cdAs} CDAs)...")

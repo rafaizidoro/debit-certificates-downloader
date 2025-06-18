@@ -3,13 +3,20 @@
 
 # IMPORTS
 import streamlit as st
-import os
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple, Union
-from debit_certificates_manager import run_download_from_file
 from io import BytesIO
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+
+from debit_certificates_manager import run_download_from_file
+
+# BASE_DIR DEFINITION:
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 # 🔍 VALIDATE CSV FUNCTION
 def validate_csv_structure(file_obj: BytesIO, required_column: str = "cda") -> Tuple[bool, Union[pd.DataFrame, str]]:
@@ -49,7 +56,7 @@ if uploaded_file is not None:
 
     if is_valid:
         df_uploaded = result
-        st.write(df_uploaded["cda"].head()) 
+        st.dataframe(df_uploaded[["cda"]].head(10))
 
         # ▶️ Show download button only if valid
         if st.button("▶️ Baixar CDAs"):
@@ -61,7 +68,7 @@ if uploaded_file is not None:
                 try:
                     # 📂 Save file temporarily
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    temp_path = f"temp_cdalist_{timestamp}.csv"
+                    temp_path = os.path.join(BASE_DIR, f"temp_cdalist_{timestamp}.csv")
 
                     buffer.seek(0)  # ⬇️ Rewind buffer before saving
                     with open(temp_path, "wb") as f:
@@ -73,7 +80,8 @@ if uploaded_file is not None:
                         status_placeholder.info(f"🔄 Processadas {index} de {total}: CDA {cda_number}...")
 
                     # ⚙️ Run the main automation
-                    os.environ["STREAMLIT_RUN"] = "1"
+                    if getattr(sys, 'frozen', False):
+                        os.environ["STREAMLIT_RUN"] = "1"
                     st.info("⬇️ Acessando SitafeWeb e fazendo download das CDAs...")
                     total, success_count, log_path, archive_folder = run_download_from_file(
                         file_path=temp_path,
@@ -93,9 +101,9 @@ if uploaded_file is not None:
                     st.write(f"📜 Relatório gerado: `{log_path}`")
 
                     try:
-                        df = pd.read_csv(log_path)
-                        st.subheader("📊 Relatório de Execução")
-                        st.dataframe(df)
+                        df_log = pd.read_csv(log_path)
+                        st.dataframe(df_log)
+                        st.subheader("📊 Relatório de Execução")                        
                         with open(log_path, "rb") as f:
                             st.download_button("⬇️ Baixar Relatório", f, file_name=os.path.basename(log_path), mime="text/csv")
                     except Exception as e:
@@ -108,3 +116,4 @@ if uploaded_file is not None:
 
                 except Exception as e:
                     st.error(f"Erro ao executar a automação: {e}")
+

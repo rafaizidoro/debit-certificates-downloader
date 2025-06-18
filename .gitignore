@@ -1,6 +1,7 @@
 # Do not upload secrets or local files
 .env
 .venv
+.venv310
 log.txt
 __pycache__/
 *.pyc
