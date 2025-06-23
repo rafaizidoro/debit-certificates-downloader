@@ -12,7 +12,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 
-from debit_certificates_manager import run_download_from_file
+from logic_certificates_manager import run_download_from_file
 
 # BASE_DIR DEFINITION:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
