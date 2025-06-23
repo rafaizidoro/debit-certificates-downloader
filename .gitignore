@@ -1,10 +1,28 @@
-# Do not upload secrets or local files
+# 🔒 Arquivos de ambiente e segredos
 .env
-.venv
-.venv310
-log.txt
+.venv/
+.venv310/
+
+# 🐍 Arquivos Python compilados e cache
 __pycache__/
-*.pyc
+*.py[cod]
+.mypy_cache/
+
+# 📦 Diretórios de build do PyInstaller
+build/
+dist/
+*.spec
+
+# 🧪 Arquivos temporários e dados sensíveis
+log.txt
 cdas.csv
 temp_cdalist.csv
-.mypy_cache/
+
+# 🚫 Evita subir executáveis gerados manualmente
+*.exe
+
+# 💻 Sistema operacional / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
