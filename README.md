@@ -1,68 +1,37 @@
-# 📄 Debit Certificates Manager (SitafeWeb Automation)
+# Gerenciador de CDAs (DEBT CERTIFICATES MANAGER)
 
-This tool automates the download of Certidões de Débito Ativa (CDAs) from the SitafeWeb system used by DETRAN/RO.  
-Now with a simple and intuitive Streamlit-based interface, it’s suitable for both technical and non-technical users.
+This tool automates the download of Certidões de Dívida Ativa (CDAs) from the SitafeWeb system used by DETRAN/RO.  
+It now includes a standalone Windows executable with a graphical interface powered by Streamlit, making it accessible to both technical and non-technical users.
 
 ---
 
 ## 🚀 Features
 
-- ✅ Web-based interface (no terminal required)
-- ✅ Secure login using your CPF and password
-- ✅ Upload `.csv` or `.txt` file with CDA numbers
-- ✅ Automatic download of all CDAs as PDF
-- ✅ Logs each attempt (success/failure) in a CSV file
-- ✅ Saves everything to your local `Downloads/CDAs/` folder
-- ✅ Downloadable execution report via the interface
+- ✅ Desktop GUI with Streamlit (no terminal required)
+- ✅ Secure login with CPF and password
+- ✅ Upload a `.csv` file containing CDA numbers
+- ✅ Automated downloads of CDA PDFs from SitafeWeb
+- ✅ Logging of all results (success/failure) in a CSV report
+- ✅ Automatic folder creation and archiving of downloads
+- ✅ Final report with log and download summary
 
 ---
 
-## 🖥️ How to Run
+## 🧑‍💻 How to Use the Standalone Executable
 
-### 1. Clone the repository:
-```bash
-git clone https://github.com/your-user/debit-certificates-manager.git
-cd debit-certificates-manager
+1. Download `GerenciadorCDAs.exe` from the [Releases](https://github.com/your-user/debit-certificates-manager/releases) page.
+2. Double-click to open.
+3. The terminal will display diagnostics and automatically launch the Streamlit interface in your browser.
+4. Upload your CSV file and log in to start the automation.
+5. Once complete, downloaded files and logs will be saved in a folder named `CDAs_<timestamp>`.
 
-### 2. Install dependencies:
+---
 
-bash
-Copy
-Edit
-pip install -r requirements.txt
+## 📂 Input File Format
 
-### 3. Run the app:
+Upload a `.csv` file with a header `cda`, like:
 
-bash
-Copy
-Edit
-streamlit run cda_webapp.py
-
-### 📂 Input File Format
-Upload a .csv or .txt file with a column named cda, for example:
-
-.csv:
-
+```csv
 cda
 01234567890
-11223344556
 99887766554
-
-### 📥 Output
-All CDA PDFs are downloaded into:
-
-~/Downloads/CDAs/CDAs_YYYY-MM-DD_HH-MM-SS/
-A log CSV is also saved in the same folder, containing:
-CDA,Status,Timestamp,Message
-
-### 📌 Requirements
-
-Python 3.8+
-Google Chrome installed
-ChromeDriver compatible with your Chrome version (already included in the repository)
-
-🧪 Development & Testing
-If you want to run the script without Streamlit:
-
-python debit_certificates_manager.py
-Make sure to update the script to include your username, password, and CDA list path.
