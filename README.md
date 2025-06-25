@@ -1,4 +1,4 @@
-# Gerenciador de CDAs (DEBT CERTIFICATES MANAGER)
+# Debit Certificates Downloader (Downloader de CDAs)
 
 This tool automates the download of Certidões de Dívida Ativa (CDAs) from the SitafeWeb system used by DETRAN/RO.  
 It now includes a standalone Windows executable with a graphical interface powered by Streamlit, making it accessible to both technical and non-technical users.
