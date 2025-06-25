@@ -1,4 +1,4 @@
-# 📄 STREAMLIT WEB APP FOR CDA MANAGER
+# 📄 STREAMLIT WEB APP FOR CDA DOWNLOADER
 # THIS APP ALLOWS UPLOADING A LIST OF CDAS AND DOWNLOADING THEM VIA SITAFE AUTOMATION
 
 # IMPORTS
@@ -12,7 +12,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 
-from logic_certificates_manager import run_download_from_file
+from logic_certificates_downloader import run_download_from_file
 
 # BASE_DIR DEFINITION:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -30,8 +30,8 @@ def validate_csv_structure(file_obj: BytesIO, required_column: str = "cda") -> T
         return False, f"❌ Erro carregando o arquivo: {e}"
 
 # 🔧 SETUP STREAMLIT PAGE CONFIGURATION
-st.set_page_config(page_title="Gerenciador de CDAs", layout="centered", page_icon="📄")
-st.title("📄 Gerenciador de CDAs")
+st.set_page_config(page_title="Download de CDAs", layout="centered", page_icon="📄")
+st.title("📄 Download de CDAs")
 st.markdown("Carregue sua lista de CDAs e informe suas credenciais para iniciar o download.")
 
 # 🔐 USER CREDENTIALS
