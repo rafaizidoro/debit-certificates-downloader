@@ -34,7 +34,7 @@ def main():
     os.environ["CDA_LAUNCHER_RUNNING"] = "1"
 
     # Resolve caminho do app
-    target = resource_path("app/cda_webapp.py")
+    target = resource_path("app/cdadownloader_webapp.py")
     print_separator("ALVO (SCRIPT STREAMLIT)")
     print(f"🎯 Caminho para app: {target}")
     print(f"📂 Existe? {'✅ Sim' if os.path.exists(target) else '❌ Não'}")
